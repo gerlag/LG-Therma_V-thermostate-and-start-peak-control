@@ -85,10 +85,22 @@ input_number:
     unit_of_measurement: K 
 ```
 The PID controller itself is created as an automation. 
-every miunute, the proportional, integration and derivative values are summed up send to the Therma_V 
+Every miunute, the proportional, integration and derivative values are summed up send to the Therma_V 
 The same automation also incorporates start peak control and tries to limit the aggressive powering up behavior of the ThermaV. 
 
 
+In configuration.yaml:
+```YAML
+## needed to keep hand crafted automations untouched by GUI
+homeassistant:
+  packages: !include_dir_named packages 
+## All of my regular automations go here
+automation yaml: !include_dir_merge_list automations/
+```
+In automations/warmtepomp.yaml:
+```YAML
+
+```
 
 
    
