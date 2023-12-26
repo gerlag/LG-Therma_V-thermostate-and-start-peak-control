@@ -1,5 +1,5 @@
 # LG-Therma_V-thermostate-and-start-peak-control
-HA script that controls room temperature when Therma_V is in water-based AI-mode. Includes also start peak control.
+A HA script that controls room temperature when my Therma_V heat pump (9kW U44) is running in AI-mode. Script includes also start peak and 'oil return peak' ccontrol.
 
 ## PROOF OF CONCEPT
 
