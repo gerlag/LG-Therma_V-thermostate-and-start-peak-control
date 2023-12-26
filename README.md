@@ -3,20 +3,20 @@ A HA script that controls room temperature when my Therma_V heat pump (9kW U44) 
 
 ## PROOF OF CONCEPT
 
+[Credits: contributors of the tweakers topic on https://gathering.tweakers.net/forum/list_messages/2017448/0]  
+
 This script is meant to run as a thermostate for the LG therma V heast pump with an external room temperature sensor. The script runs on a standard Home Assistant instalation  (HA) at an RPI or Odroid system. 
 
-contributors of 
+No need to mount the (ugly) RMC in your living room. In my case I wanted to keep the 'Toon' (https://www.eneco.nl/energieproducten/toon-thermostaat/)
 
-No need to mount the (ugly) RMC in your living room. 
+LG Thermo must run in AI mode. The heating curve 'Stooklijn' in the RMC must be properly set up prior to running this script. 
 
-LG Thermo must run in AI mode. The heating xurve 'Stooklijn' in the RMC must be properly set up prior to running this script. 
-
-Any HA-readable temperature sensor can be used. 
+Any HA-readable temperature sensor can be used for measuring the room temperature. 
 
 1. setpoint and room temperature
 The setpoint of the room temperature can be entererd in HA or by using an external device that can communicate with HA. 
 
-As an example, the current setpoint and room temperature  can be read from 'Toon', using the following code snippet: 
+As an example, the current setpoint and room temperature  can be read from my  'Toon', using the following code snippet: 
 
 In configuration.yaml: 
 ``` YAML
@@ -59,7 +59,7 @@ sensor:
       unit_time: h 
       round: 8
 ```
-In order to cope with the potentiaal huge value of the integration we store this value in an input_number so we can use the relative distance from this value as the actuel integrator value
+In order to cope with the potentiaal huge value of the integration which can not be reset in HA, we store this value in an input_number so we can use the relative distance from the stored value as the actuel integrator value
 
 In configuration.yaml:
 ```YAML
@@ -70,9 +70,9 @@ input_number:
     max: 1e99
     unit_of_measurement: Kh
 ```
-Further, we need to prevent winding up the integrator from the moment the output of the controller reaches its limit. In AI mode of the ThermaV the output is limited to + and - 5K 
-The input difference of the integrator is kept at zero from the moment of limiting. This causes the output of the integrator not to increase or decrease anymore. 
-An input_number will be used for this. We set this input_number to setpoint - measuredValue, or to zero in case the controller reaches its limit.
+Further, we need to prevent winding up the integrator from the moment the output of the controller reaches its limit. In AI mode of the ThermaV the actual value of heating curve can be shifted to a maximum of + and - 5K.  
+The input difference of the integrator is kept at zero from the moment rge maximum value has been reached. This causes the output of the integrator not to increase or decrease anymore. 
+In HA, an input_number will be used for this. In normal operation, we set this input_number to setpoint - measuredValue, in case the controller reaches its + or - 5K limit, we set the value to zero.
 
 In configuration.yaml:
 ```YAML
@@ -84,8 +84,8 @@ input_number:
     unit_of_measurement: K 
 ```
 The PID controller itself is created as an automation. 
-Every minute, the proportional, integration and derivative values are summed up and send to the Therma_V. 
-The same automation also incorporates start peak control and tries to limit the aggressive powering up behaviour of the ThermaV. 
+Every minute, the proportional, integration and derivative values are summed up, the result, being the desired offset, is send to the Therma_V. 
+The same automation also incorporates start peak and oil return peak control. Ot tries also to limit the aggressive powering up behaviour of the ThermaV. 
 
 In configuration.yaml:
 ```YAML
