@@ -9,7 +9,7 @@ This script is meant to run as a thermostate for the LG therma V heast pump with
 
 No need to mount the (ugly) RMC in your living room. In my case I wanted to keep the 'Toon' (https://www.eneco.nl/energieproducten/toon-thermostaat/)
 
-LG Thermo must run in AI mode. The heating curve 'Stooklijn' in the RMC must be properly set up prior to running this script. 
+LG Thermo must be run in AI mode. The heating curve 'Stooklijn' in the RMC must be properly set up prior to running this script. 
 
 Any HA-readable temperature sensor can be used for measuring the room temperature. 
 
