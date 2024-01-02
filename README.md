@@ -5,13 +5,13 @@ A HA script that controls room temperature when my Therma_V heat pump (9kW U44) 
 
 [Credits: many contributors of the tweakers topic on https://gathering.tweakers.net/forum/list_messages/2017448/0]  
 
-This script is meant to run as a thermostate for the LG therma V heast pump with an external room temperature sensor. The script runs on a standard Home Assistant instalation  (HA) at an RPI or Odroid system. 
+This script is meant to be used as a thermostate for the LG therma_V heat pump. It's using an external room temperature sensor. Any HA-readable temperature sensor can be used for measuring the room temperature. 
+The script is being used on a standard Home Assistant instalation  (HA) at an RPI or Odroid system. 
+It's NOT a 'copy and paste' script. Use it (partly) in your own Therma_V modbus script for inspiration. Check the sensor names tp which this code is referring to. 
 
 No need to mount the (ugly) RMC in your living room. In my case I wanted to keep the 'Toon' (https://www.eneco.nl/energieproducten/toon-thermostaat/)
 
-LG Thermo V must be run in AI mode. The heating curve 'Stooklijn' in the RMC must be properly set up first. 
-
-Any HA-readable temperature sensor can be used for measuring the room temperature. 
+Note: the LG Therma_V must be run in AI mode. The heating curve 'Stooklijn' in the RMC must be properly set up first. 
 
 1. setpoint and room temperature
 The setpoint of the room temperature can be entererd in HA or by using an external device that can communicate with HA. 
@@ -38,7 +38,7 @@ rest:
 
 2. PID controller
 
-The PID controller is based on the in HA built-in platform integration and platform derivative
+The PID controller is based on the in HA built-in platforms integration and derivative
 
 In configuration.yaml:
 ```YAML
@@ -83,7 +83,7 @@ input_number:
     max: 5
     unit_of_measurement: K 
 ```
-In HA the output of the differentior, the derivative, does not go to zero if the input value is not changing. It keeps the last value before that moment. However derivative value should be zero, if not, the D funtion of the controller creates a non zero output value, which of coursde is not wanted. The circumvent  this, we add a very small amount of noise on the input valuw of the diffentiator. Bu doing this the diffentiator still updates its output value every cycle. 
+In HA the output of the differentior, the derivative, does not go to zero if the input value is not changing. It keeps the last value before that moment. I think it's a bug, the developer thinks it's not a bug. Anyway, the derivative value should be zero in the case the input is not changing. If not, the D funtion of the controller creates a non zero output value, which of coursde is not wanted. The circumvent this problem, we add a very small amount of noise on top of the input value of the diffentiator. By doing this, the diffentiator still sees always a changing value, although very,very small, so it updates its output value every cycle and produces a zero output with some minimal noise on it. 
 
 In In configuration.yaml:
 ```YAML
@@ -96,7 +96,7 @@ In In configuration.yaml:
                 {{ nd }}  
 ```
 The PID controller itself is created as an automation. 
-Every minute, the proportional, integration and derivative values are summed up, the result, being the desired offset of the actual stooklijn temperature, is send to the Therma_V. 
+Every minute, the proportional, integration and derivative values are summed up, the result, being the desired offset of the actual stooklijn temperature, is then send to the Therma_V. 
 The same automation also incorporates start peak and oil return peak control. It tries also to limit the aggressive powering up behaviour of the ThermaV by arificailly keeping the diffence between setpoint and actual value low. 
 
 In configuration.yaml:
