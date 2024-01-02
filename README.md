@@ -9,7 +9,7 @@ This script is meant to be used as a thermostate for the LG therma_V heat pump. 
 
 The script is being used on a standard Home Assistant instalation  (HA) at an RPI or Odroid system. 
 
-It's NOT a 'copy and paste' script. Use it (partly) in your own Therma_V modbus script for inspiration. Check the sensor names tp which this code is referring to. 
+It's NOT a 'copy and paste' script. Use it (partly) in your own Therma_V modbus script for inspiration. Check the sensor names to which this code is referring to. 
 
 No need to mount the (ugly) RMC in your living room. In my case I wanted to keep the 'Toon' (https://www.eneco.nl/energieproducten/toon-thermostaat/)
 
