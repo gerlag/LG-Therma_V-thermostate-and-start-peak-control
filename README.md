@@ -1,22 +1,22 @@
 # LG-Therma_V-thermostate-and-start-peak-control
-A HA script that controls room temperature when my Therma_V heat pump (9kW U44) is running in AI-mode. Script includes also start peak and 'oil return peak' control.
+A HA script that controls room temperature when my Therma_V heat pump (9kW U44) is running in AI-mode. Script includes also start peak and 'oil return peak' control. 
 
 ## PROOF OF CONCEPT
 
-[Credits: contributors of the tweakers topic on https://gathering.tweakers.net/forum/list_messages/2017448/0]  
+[Credits: many contributors of the tweakers topic on https://gathering.tweakers.net/forum/list_messages/2017448/0]  
 
 This script is meant to run as a thermostate for the LG therma V heast pump with an external room temperature sensor. The script runs on a standard Home Assistant instalation  (HA) at an RPI or Odroid system. 
 
 No need to mount the (ugly) RMC in your living room. In my case I wanted to keep the 'Toon' (https://www.eneco.nl/energieproducten/toon-thermostaat/)
 
-LG Thermo must be run in AI mode. The heating curve 'Stooklijn' in the RMC must be properly set up prior to running this script. 
+LG Thermo V must be run in AI mode. The heating curve 'Stooklijn' in the RMC must be properly set up first. 
 
 Any HA-readable temperature sensor can be used for measuring the room temperature. 
 
 1. setpoint and room temperature
 The setpoint of the room temperature can be entererd in HA or by using an external device that can communicate with HA. 
 
-As an example, the current setpoint and room temperature  can be read from my  'Toon', using the following code snippet: 
+As an example, the current setpoint and room temperature  can be read from my 'Toon', using the following code snippet: 
 
 In configuration.yaml: 
 ``` YAML
@@ -59,7 +59,7 @@ sensor:
       unit_time: h 
       round: 8
 ```
-In order to cope with the potentiaal huge value of the integration which can not be reset in HA, we store this value in an input_number so we can use the relative distance from the stored value as the actuel integrator value
+In order to cope with the potentiaal huge value of the integrationm  which can not be reset in HA, we store this value in an input_number so we can use the relative distance from that calue as the actuel integrator value. 
 
 In configuration.yaml:
 ```YAML
@@ -70,9 +70,9 @@ input_number:
     max: 1e99
     unit_of_measurement: Kh
 ```
-Further, we need to prevent winding up the integrator from the moment the output of the controller reaches its limit. In AI mode of the ThermaV the actual value of heating curve can be shifted to a maximum of + and - 5K.  
-The input difference of the integrator is kept at zero from the moment rge maximum value has been reached. This causes the output of the integrator not to increase or decrease anymore. 
-In HA, an input_number will be used for this. In normal operation, we set this input_number to setpoint - measuredValue, in case the controller reaches its + or - 5K limit, we set the value to zero.
+Further, we need to prevent winding up the integrator from the moment the output of the controller reaches its limit, in our case this limit is the maximum + en - 5K shift of the actual value of the heating curve.  
+The input difference of the integrator is kept at zero from the moment the maximum value has been reached. This causes the output of the integrator to not increase or decrease anymore. 
+In HA, an input_number will be used for this. In normal operation, we set this input_number to ```setpoint - measuredValue```, in case the controller reaches its + or - 5K limit, we set the value to zero.
 
 In configuration.yaml:
 ```YAML
@@ -83,9 +83,21 @@ input_number:
     max: 5
     unit_of_measurement: K 
 ```
+In HA the output of the differentior, the derivative, does not go to zero if the input value is not changing. It keeps the last value before that moment. However derivative value should be zero, if not, the D funtion of the controller creates a non zero output value, which of coursde is not wanted. The circumvent  this, we add a very small amount of noise on the input valuw of the diffentiator. Bu doing this the diffentiator still updates its output value every cycle. 
+
+In In configuration.yaml:
+```YAML
+ ### noise difference between setpount and actual value  to keep derivative actualtemp_vs_settemp moving when zero
+          noisy_actualtemp_vs_settemp:
+              unit_of_measurement: K
+              value_template: >
+                {% set nd = states('sensor.actualtemp_vs_settemp') | float(0) %}
+                {% set nd = nd+ (range(-51, 51) | random)/10000 %} 
+                {{ nd }}  
+```
 The PID controller itself is created as an automation. 
-Every minute, the proportional, integration and derivative values are summed up, the result, being the desired offset, is send to the Therma_V. 
-The same automation also incorporates start peak and oil return peak control. Ot tries also to limit the aggressive powering up behaviour of the ThermaV. 
+Every minute, the proportional, integration and derivative values are summed up, the result, being the desired offset of the actual stooklijn temperature, is send to the Therma_V. 
+The same automation also incorporates start peak and oil return peak control. It tries also to limit the aggressive powering up behaviour of the ThermaV by arificailly keeping the diffence between setpoint and actual value low. 
 
 In configuration.yaml:
 ```YAML
@@ -108,7 +120,7 @@ In automations/warmtepomp.yaml:
 # (5) winding up limiter integrator                                                                              #  
 #                                                                                                                #
 # IMPORTANT: obligatory LG RMC settings:                                                                         #
-#   - AI based water temperature control (input) *If output control is wanted, change HA sensor accordingly      #
+#   - AI based water temperature control (output) *If input control is wanted, change 'o' under (2) accordingly  #
 #   - 'heating curve (stooklijn)  MUST be set up first. MUST be adequate for YOUR system                         #
 #   - hysteresis +4  and -1.5 appears to be acceptable in my set up.                                             #
 #  -  Set input_number.max_delta_t in config.yaml to same number (or same-1) as the +hysteris  in RMC            #
@@ -149,15 +161,24 @@ In automations/warmtepomp.yaml:
         {% set outputD = (kd*d)|float(0) %} 
         {% set of = -1*( outputP  + outputI + outputD )| round(3) %} 
         
+        {###################### (1b) experiment anti oscillation #########################################}
+        {% if true %}
+             {# experiment anti oscillation #}
+             {% set d_invertor = states('sensor.derivative_inverter')| float(0)   %}
+             {% set k_anti_oscillation = states('input_number.k_anti_oscillation') | float(0)   %}
+             {% set of = (of + d_invertor*k_anti_oscillation) | float(0) | round(3)  %}
+        {% endif %}
+        
         {###################### (2) overdeheuvelhulp startpiek #########################################} 
         {# set overdeheuvelhulp to false if not wanted #}
         {% set overdeheuvelhulp = true %} 
         {% if (overdeheuvelhulp) %}
             {% set maxDeltaT = states('input_number.max_delta_t') | float(0)  %} 
-            {% if ((states('binary_sensor.compressor_status') == "on" ) and ( epwr > 0.380 ) ) %}
-               {% set o = states('sensor.water_inlet_temp')| float(0)   %}
+               {# set o = states('sensor.water_inlet_temp')| float(0)   #}
+               {% set o = states('sensor.water_outlet_temp')| float(0)   %}
                {% set t = states('sensor.target_temp_circuit1') | float(0) %}
-               {% set ofactual = states('sensor.shift_value_in_auto_mode_circuit1') | float(0)  %}
+               {% set ofactual = states('sensor.shift_value_in_auto_mode_circuit1') | float(0)  %}            
+            {% if ((states('binary_sensor.compressor_status') == "on" ) and ( epwr > 0.350 ) ) %}
                {% set allowedT = (o-maxDeltaT)|float(0) %}
                {% if  t >=  allowedT   %}
                  {% set hotter = ( (ofactual-of) + 0.8*(allowedT-t)  )  | round(0) | int %} 
@@ -176,9 +197,13 @@ In automations/warmtepomp.yaml:
            {% set newof = of | float(0) | round(0) | int %}
         {% endif %} 
         
-        {############## (3) to prevent too large power steps,           #########}
-        {############## limit setpoint to max 1 K above water_temp #########}
-        {% if true %}
+
+
+        {############## (3) prevention of large power steps,              #########}
+        {############## by limiting  setpoint to max 1 K above water_temp #########}
+        {# set largePowerStepPrevention to false if not wanted #}
+        {% set largePowerStepPrevention = true %}         
+        {% if largePowerStepPrevention %}
             {% set presentstooklijnT = (t - ofactual) %}
             {% if  ( (t -o) > 1 )  or ( (presentstooklijnT + newof  -o ) > 1 ) %}
                {% set limitedTarget =  ( o +1  )     %}
@@ -248,11 +273,27 @@ In automations/warmtepomp.yaml:
             {% if of|abs < 5 %}
               {{mvminsp}}
             {% else %}  
-              {{ 0 }}
+              {{ 0|float(0) }}
             {% endif %}    
             {# 
               Note: instead of recalculating the desired offset, it should be possible to test against the value of the offset register in the LG: states('sensor.shift_value_in_auto_mode_circuit1')    
             #}
+
+    # force update of below sensors at each trigger. Needed to get proper zero values from derivative. (bypassing a bug (In my opinion) in HA )
+      
+  - service: homeassistant.update_entity
+    target:
+      entity_id: sensor.derivative_inverter
+      
+  - service: homeassistant.update_entity
+    target:
+      entity_id: sensor.noisy_actualtemp_vs_settemp  
+      
+  - service: homeassistant.update_entity
+    target:
+      entity_id: sensor.derivative_actualtemp_vs_settemp            
+            
+            
   mode: restart
 ```
 
