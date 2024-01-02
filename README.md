@@ -6,7 +6,9 @@ A HA script that controls the room temperature, using my Therma_V heat pump (9kW
 [Credits: many contributors of the tweakers topic on https://gathering.tweakers.net/forum/list_messages/2017448/0]  
 
 This script is meant to be used as a thermostate for the LG therma_V heat pump. It's using an external room temperature sensor. Any HA-readable temperature sensor can be used for measuring the room temperature. 
+
 The script is being used on a standard Home Assistant instalation  (HA) at an RPI or Odroid system. 
+
 It's NOT a 'copy and paste' script. Use it (partly) in your own Therma_V modbus script for inspiration. Check the sensor names tp which this code is referring to. 
 
 No need to mount the (ugly) RMC in your living room. In my case I wanted to keep the 'Toon' (https://www.eneco.nl/energieproducten/toon-thermostaat/)
