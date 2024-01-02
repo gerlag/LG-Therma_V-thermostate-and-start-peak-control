@@ -15,6 +15,8 @@ No need to mount the (ugly) RMC in your living room. In my case I wanted to keep
 
 Note: the LG Therma_V must be run in AI mode. The heating curve ('Stooklijn') in the RMC must be properly set up first. 
 
+Below some 'frozen' code snippets. Actual updates or modifications, if any, can be found in de files section. 
+
 1. setpoint and room temperature
 The setpoint of the room temperature can be entererd in HA or by using an external device that can communicate with HA. 
 
