@@ -1,0 +1,203 @@
+# Heat Pump LG HM091MR U44
+# settings in RMC LG:
+# Controltemp: water out
+# RMC in AI mode
+# proper heating-curve (stooklijn) to be set beforehand! 
+# hysteresis: -1.5 + 4
+
+# define variables
+# https://gathering.tweakers.net/forum/list_message/74234632#74234632
+input_number:
+
+##### BEGIN settings for PID Controller and start peak control  
+##### Note: first find out manually how much +1 in AI mode influneces the room temperature
+#####       kp:  should roughly be that value or a bit (max twice)  higher
+#####       ki: in my set up ki can roughly have the same value as kp
+#####       kd:  you can set this value to zero, or do some experiments.  Set kd not too high. kd makes your system more 'restless' but could improve stability of room temperature
+  kp:
+    name: kp
+    initial: 2.4
+    min: -5
+    max: 5
+#    unit_of_measurement:  
+    step: 0.1
+    mode: box
+    
+  ki:
+    name: ki
+    initial: 2.6
+    min: -5
+    max: 5
+#    unit_of_measurement:  
+    step: 0.1
+    mode: box
+
+  kd:
+    name: kd
+    initial: 0.0
+    min: -5
+    max: 5
+#    unit_of_measurement:   
+    step: 0.1
+    mode: box
+
+    
+  integrator_center_value: 
+    name: Integrator center value
+    min: -1e99
+    max: 1e99
+    unit_of_measurement: Kh    
+    
+  windup_limited_diff_to_integrator:
+    name: windup_limited_diff_actualtemp_versus_settemp
+#    initial: 0
+    min: -5
+    max: 5
+    unit_of_measurement: K    
+    
+    
+  max_delta_t:
+  # Set MaxDeltaT to same value or same value-1 as the +hysteris  in RMC 
+    name: max_delta_t
+    initial: 3
+    min: 2.9
+    max: 4.1
+    step: 0.1
+    mode: box   
+    
+##### END settings for PID controller and start peak control
+    
+
+#  read out TOON
+# https://www.domoticaforum.eu/viewtopic.php?f=97&t=12810&p=94570&hilit=happ_thermstat#p94570
+rest:
+    resource: "http://192.168.178.102/happ_thermstat?action=getThermostatInfo"
+    scan_interval: 10
+    sensor: 
+        - name: CurrentSetpoint
+          value_template: '{{ value_json.currentSetpoint |float(0) * 0.01 + 5}}' # s setpoint 5 K lager. indien real  setting > 19 dan WP uit en kennelijk CV bedoeld 
+          unit_of_measurement: °C
+        
+        - name: CurrentTemperature
+          value_template: '{{ value_json.currentTemp |float(0) * 0.01 }}' 
+          unit_of_measurement: °C
+          
+rest_command:
+  mindergas_post:
+    url: https://www.mindergas.nl/api/meter_readings
+    method: POST
+    headers:
+      AUTH-TOKEN: "yuor token"
+      Content-Type: "application/json"
+    payload: '{ "date": "{{ date }}", "reading": {{ meterreading }} }'
+    verify_ssl: true
+
+
+#  read out all modbus devices
+# should be done by you as this is partly specific. 
+        
+
+sensor:
+    - platform: derivative
+      source: sensor.noisy_actualtemp_vs_settemp
+      name: derivative_actualtemp_vs_settemp
+      round: 8
+      unit_time: h # the resulting "unit_of_measurement" will be K/h if the sensor.temperate has set K as its unit
+      time_window: "00:5:00"  # we average over the last 5 minutes
+
+    - platform: derivative
+      source: sensor.noisy_inverter
+      name: derivative_inverter
+      round: 8
+      unit_time: h # the resulting "unit_of_measurement" will be K/h if the sensor.temperate has set Hz as its unit
+      time_window: "00:5:00"  # we average over the last 5 minutes
+
+    - platform: integration
+      unique_id: b3bb2e79-f9e0-4d6d-8201-302e61ccfa2
+      # source: sensor.actualtemp_vs_settemp
+      source: input_number.windup_limited_diff_to_integrator
+      name: integration_actualtemper_vs_settemp
+      method: left
+      unit_time: h  # the resulting "unit_of_measurement" will be Kh if the sensor.temperate has set K as its unit
+      round: 8
+
+
+           
+    - platform: template
+      sensors:
+### difference between setpount and actual value  
+          actualtemp_vs_settemp:
+              unit_of_measurement: K
+              value_template: >
+                {% set sp = states('sensor.CurrentSetpoint') | float(0) %}
+                {% set mv = states('sensor.CurrentTemperature') | float(0) %}
+                {% set tdiff = (mv-sp) %} 
+                {{ tdiff }}
+                
+ ### noise difference between setpount and actual value  to keep derivative actualtemp_vs_settemp moving when zero
+          noisy_actualtemp_vs_settemp:
+              unit_of_measurement: K
+              value_template: >
+                {% set nd = states('sensor.actualtemp_vs_settemp') | float(0) %}
+                {% set nd = nd+ (range(-51, 51) | random)/10000 %} 
+                {{ nd }}              
+                  
+### noisy signal to to keep derivative invertermoving when zero
+          noisy_inverter:
+              unit_of_measurement: Hz
+              value_template: >
+                {% set ni = states('sensor.inverter') | float(0) %}
+                {% set ni = ni+ (range(-51, 51) | random)/10000 %} 
+                {{ ni }}
+                  
+
+
+template:
+       
+# detectie waterpomp aan of uit
+  - sensor:
+#watercircuit  
+    - name: "waterpomp_aan_of_uit"
+      state: >-  
+        {% set flow = states('sensor.current_flow_rate') | float %}
+        {% if (flow)  > 6 %}
+                on
+        {% else %}
+                off
+        {% endif %}
+
+  - sensor:
+# heat_pump_active 
+############3  GH maybe to be added:  modbus signaal waterpomp aan/uit. 
+    - name: "heat_pump_active"
+      state: >-
+        {% if ((states('binary_sensor.compressor_status') == "on") and (states('sensor.waterpomp_aan_of_uit') == "on")) %}
+                On
+            {% else %}
+                Off
+            {% endif %}
+
+
+
+## needed to keep hand crafted automations untouched by GUI
+homeassistant:
+  packages: !include_dir_named packages 
+## All of my regular automations go here
+automation yaml: !include_dir_merge_list automations/
+        
+        
+# Below the untouched HA initial settings
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+
+# Text to speech
+tts:
+  - platform: google_translate
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
