@@ -3,35 +3,6 @@
 ########################################
 
 
-- id: '167437807'
-  alias: Silent_mode_after_power_peak
-  description: Bij te lang te hoog vermogen zet Silent mode voor xx seconden  aan. 
-  trigger:
-  - platform: state
-    entity_id:
-    - sensor.LG_te_veel_vermogen
-    from: 'Off'
-    to: 'On'
-    for:
-      minutes: 4
-      seconds: 15
-  condition: []
-  action:
-  - service: switch.turn_on
-    data: {}
-    target:
-      entity_id: switch.lg_silent_mode_set
-  - delay:
-      hours: 0
-      minutes: 0
-      seconds: 30
-      milliseconds: 0
-  - service: switch.turn_off
-    data: {}
-    target:
-      entity_id: switch.lg_silent_mode_set
-  mode: single
-  
 - id: '1676837085073'
   alias: Overshoot_found
   description: 'overshoot found - set silent mode to on'
@@ -60,7 +31,6 @@
     from: 'On'
     to: 'Off'
   condition: []
-#  condition: {{ ((states('sensor.outdoor_air_temp')| float(0) ) < 4 }}
   action:
   - service: switch.turn_off
     data: {}
