@@ -103,6 +103,8 @@ The PID controller itself is created as an automation.
 Every minute, the proportional, integration and derivative values are summed up, the result, being the desired offset of the actual stooklijn temperature, is then send to the Therma_V. 
 The same automation also incorporates start peak and oil return peak control. It tries also to limit the aggressive powering up behaviour of the ThermaV by arificailly keeping the diffence between setpoint and actual value low. 
 
+In order to keep hand crafted automations untouched by the GUI of HA I added the automations of the Therma_V to ```automations/warmtepomp.yaml```
+
 In configuration.yaml:
 ```YAML
 ## needed to keep hand crafted automations untouched by GUI
