@@ -16,28 +16,25 @@ input_number:
 #####       kd:  you can set this value to zero, or do some experiments.  Set kd not too high. kd makes your system more 'restless' but could improve stability of room temperature
   kp:
     name: kp
-    initial: 2.4
+#   initial: 2.4
     min: -5
     max: 5
-#    unit_of_measurement:  
     step: 0.1
     mode: box
     
   ki:
     name: ki
-    initial: 2.6
+#   initial: 2.6
     min: -5
     max: 5
-#    unit_of_measurement:  
     step: 0.1
     mode: box
 
   kd:
     name: kd
-    initial: 0.0
+#   initial: 0.0
     min: -5
     max: 5
-#    unit_of_measurement:   
     step: 0.1
     mode: box
 
@@ -57,7 +54,7 @@ input_number:
     
     
   max_delta_t:
-  # Set MaxDeltaT to same value or same value-1 as the +hysteris  in RMC 
+  # Set MaxDeltaT to same value or same value -1 as the +hysteris  in RMC 
     name: max_delta_t
     initial: 3
     min: 2.9
