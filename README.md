@@ -63,7 +63,7 @@ sensor:
       unit_time: h 
       round: 8
 ```
-In order to cope with the potentiaal huge value of the integrationm  which can not be reset in HA, we store this value in an input_number so we can use the relative distance from that calue as the actuel integrator value. 
+In order to cope with the potentiaal huge value of the integration which can not be reset in HA, we store this value in an input_number so we can use the relative distance from that value as the actuel integrator value. 
 
 In configuration.yaml:
 ```YAML
