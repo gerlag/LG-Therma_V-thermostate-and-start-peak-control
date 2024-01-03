@@ -1,0 +1,12 @@
+- id: '167437809997'
+  alias: "update mindergas"
+  # credits:https://community.home-assistant.io/t/upload-gas-readings-to-mindergas-nl/341135
+  trigger:
+      - platform: time
+        at: "00:03:45"   #Choose your own semi-unique  random time near '00:00'
+  action:
+      - service: rest_command.mindergas_post
+        data_template:
+          date: "{{ (now().timestamp() - 60*60) | timestamp_custom('%Y-%m-%d') }}"  
+          ## use 1h before now, to make sure we use yesterdays date
+          meterreading: "{{ ( (states('sensor.thermische_opbrengst_via_ntc')|float)/9.769)|round(3) }}"
