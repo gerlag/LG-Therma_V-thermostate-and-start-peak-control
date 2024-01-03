@@ -89,7 +89,7 @@ input_number:
 ```
 In HA the output of the differentior, the derivative, does not go to zero if the input value is not changing. It keeps the last value before that moment. I think it's a bug, the developer thinks it's not a bug. Anyway, the derivative value should be zero in the case the input is not changing. If not, the D funtion of the controller creates a non zero output value, which of coursde is not wanted. The circumvent this problem, we add a very small amount of noise on top of the input value of the diffentiator. By doing this, the diffentiator still sees always a changing value, although very,very small, so it updates its output value every cycle and produces a zero output with some minimal noise on it. 
 
-In In configuration.yaml:
+In configuration.yaml:
 ```YAML
  ### noise difference between setpount and actual value  to keep derivative actualtemp_vs_settemp moving when zero
           noisy_actualtemp_vs_settemp:
@@ -103,7 +103,9 @@ The PID controller itself is created as an automation.
 Every minute, the proportional, integration and derivative values are summed up, the result, being the desired offset of the actual stooklijn temperature, is then send to the Therma_V. 
 The same automation also incorporates start peak and oil return peak control. It tries also to limit the aggressive powering up behaviour of the ThermaV by arificailly keeping the diffence between setpoint and actual value low. 
 
-In order to keep hand crafted automations untouched by the GUI of HA I added the automations of the Therma_V to ```automations/warmtepomp.yaml```
+PID settings can be set by using helpers or by directly putring an apropriate  value the configuration.yaml file. For the latter uncomment the relevant lines. 
+
+In order to keep the hand crafted automations untouched by the GUI of HA I added the automations of the Therma_V to ```automations/warmtepomp.yaml```
 
 In configuration.yaml:
 ```YAML
