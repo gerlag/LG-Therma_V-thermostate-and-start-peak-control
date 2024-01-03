@@ -171,14 +171,7 @@ The heart of the PID controller is in automations/warmtepomp.yaml:
         {% set outputD = (kd*d)|float(0) %} 
         {% set of = -1*( outputP  + outputI + outputD )| round(3) %} 
         
-        {###################### (1b) experiment anti oscillation #########################################}
-        {% if true %}
-             {# experiment anti oscillation #}
-             {% set d_invertor = states('sensor.derivative_inverter')| float(0)   %}
-             {% set k_anti_oscillation = states('input_number.k_anti_oscillation') | float(0)   %}
-             {% set of = (of + d_invertor*k_anti_oscillation) | float(0) | round(3)  %}
-        {% endif %}
-        
+       
         {###################### (2) overdeheuvelhulp startpiek #########################################} 
         {# set overdeheuvelhulp to false if not wanted #}
         {% set overdeheuvelhulp = true %} 
