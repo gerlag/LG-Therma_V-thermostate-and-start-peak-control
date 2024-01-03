@@ -114,9 +114,10 @@ homeassistant:
 automation yaml: !include_dir_merge_list automations/
 ```
 
-PID settings can be set by using helpers or by directly putring an apropriate  value the configuration.yaml file. For the latter uncomment the relevant lines. 
+The PID settings can be set by using helpers or by directly puting an appropriate value the configuration.yaml file. For the latter uncomment the relevant lines. 
 
 The heart of the PID controller is in automations/warmtepomp.yaml:
+
 ```YAML
 ################################################################################################################## 
 # (1) room temperature control using  setpoint (sp) en measured value (mv) van Toon (external device of Eneco)   #
