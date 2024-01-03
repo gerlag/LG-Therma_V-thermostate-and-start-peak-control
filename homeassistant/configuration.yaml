@@ -139,15 +139,6 @@ sensor:
                 {% set nd = nd+ (range(-51, 51) | random)/10000 %} 
                 {{ nd }}              
                   
-### noisy signal to to keep derivative invertermoving when zero
-          noisy_inverter:
-              unit_of_measurement: Hz
-              value_template: >
-                {% set ni = states('sensor.inverter') | float(0) %}
-                {% set ni = ni+ (range(-51, 51) | random)/10000 %} 
-                {{ ni }}
-                  
-
 
 template:
        
