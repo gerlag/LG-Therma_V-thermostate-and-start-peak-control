@@ -15,6 +15,10 @@ No need to mount the (ugly) RMC in your living room. In my case I wanted to keep
 
 Note: the LG Therma_V must be run in AI mode. The heating curve ('Stooklijn') in the RMC must be properly set up first. 
 
+Example of step resonse: 
+
+![step response](https://github.com/gerlag/LG-Therma_V-thermostate-and-start-peak-control/assets/4966479/646ee7bc-7f59-4c1a-82b7-30fd57bb0387)
+
 Below some 'frozen' code snippets. Actual updates or modifications, if any, can be found in de files section. 
 
 1. setpoint and room temperature
