@@ -19,7 +19,7 @@ Example of step resonse:
 
 ![step response](https://github.com/gerlag/LG-Therma_V-thermostate-and-start-peak-control/assets/4966479/646ee7bc-7f59-4c1a-82b7-30fd57bb0387)
 
-Two examples of start peak control: target temperature water is kept max 4 °C below actual temperature water. That prevents the Therma_V to shut off on over temperature. 
+Two examples of start peak control: The water target temperature is kept max 4 °C below actual water temperature. That prevents the Therma_V to shut off on over temperature. 
 
 ![peak control](https://github.com/gerlag/LG-Therma_V-thermostate-and-start-peak-control/assets/4966479/51155997-15bf-473e-92e8-ce5674264c10)
 
