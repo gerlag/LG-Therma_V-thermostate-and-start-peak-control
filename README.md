@@ -293,10 +293,7 @@ The heart of the PID controller is in automations/warmtepomp.yaml:
 
     # force update of below sensors at each trigger. Needed to get proper zero values from derivative. (bypassing a bug (In my opinion) in HA )
       
-  - service: homeassistant.update_entity
-    target:
-      entity_id: sensor.derivative_inverter
-      
+     
   - service: homeassistant.update_entity
     target:
       entity_id: sensor.noisy_actualtemp_vs_settemp  
