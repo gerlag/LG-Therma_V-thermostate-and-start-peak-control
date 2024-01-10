@@ -270,7 +270,7 @@ The heart of the PID controller is in automations/warmtepomp.yaml:
     data_template:
       entity_id: input_number.windup_limited_diff_to_integrator
       value: >
-            # {% set mvminsp = states('sensor.actualtemp_vs_settemp') | float(0)  %}
+            {% set mvminsp = states('sensor.actualtemp_vs_settemp') | float(0)  %}
             # {% set kp = states('input_number.kp') | float(0)  %}        
             # {% set ki = states('input_number.ki') | float(0)  %}    
             # {% set kd = states('input_number.kd') | float(0)  %}
