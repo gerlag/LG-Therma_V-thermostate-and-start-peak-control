@@ -271,28 +271,12 @@ The heart of the PID controller is in automations/warmtepomp.yaml:
       entity_id: input_number.windup_limited_diff_to_integrator
       value: >
             {% set mvminsp = states('sensor.noisy_actualtemp_vs_settemp') | float(0)  %}
-            {# set kp = states('input_number.kp') | float(0)  #}        
-            {# set ki = states('input_number.ki') | float(0)  #}    
-            {# set kd = states('input_number.kd') | float(0)  #}
-            {# set integrationCenterValue = states('input_number.integrator_center_value')|float(0)  #}
-            {# set integrator_value_running = states('sensor.integration_actualtemper_vs_settemp')|float(0)  #}
-            {# set i = integrator_value_running - integrationCenterValue     #}
-            {# set d = states('sensor.derivative_actualtemp_vs_settemp')|float(0)    #} 
-            {# set outputP = (kp*mvminsp)|float(0) #} 
-            {# set outputI = (ki*i)|float(0) #} 
-            {# set outputD = (kd*d)|float(0) #} 
-            {# set of = -1*( outputP  + outputI + outputD )| round(3) #} 
-            {# 
-              Note: instead of recalculating the desired offset, it should be possible to test against the value of the offset register in the LG: states('sensor.shift_value_in_auto_mode_circuit1')    
-              so we do from 2024-01-10
-            #}
-            
             {% set of = states('sensor.shift_value_in_auto_mode_circuit1') | float(0)  %} 
-            {% if of|abs < 5 %}
-              {{mvminsp}}
-            {% else %}  
+            {% if ((of == -5) and (mvminsp > 0)) or ((of == 5) and (mvminsp < 0)) %}
               {{ 0|float(0) }}
-            {% endif %}  
+             {% else %}
+              {{mvminsp}}
+            {% endif %}     
 
     # force update of below sensors at each trigger. Needed to get proper zero values from derivative. (bypassing a bug (In my opinion) in HA )
       
